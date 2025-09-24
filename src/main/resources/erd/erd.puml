@@ -1,0 +1,48 @@
+
+@startuml
+!theme plain
+entity point_wallet {
+  * user_id : VARCHAR(64) <<PK>>
+  --
+  total_balance : BIGINT
+  manual_balance : BIGINT
+  updated_at : TIMESTAMP
+}
+entity point_accrual {
+  * id : BIGINT <<PK>>
+  user_id : VARCHAR(64)
+  amount : BIGINT
+  remaining : BIGINT
+  manual : BOOLEAN
+  source_type : VARCHAR(20)
+  source_id : VARCHAR(100)
+  expires_at : TIMESTAMP
+  status : VARCHAR(20)
+  idempotency_key : VARCHAR(128)
+  created_by : VARCHAR(64)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+entity point_usage {
+  * id : BIGINT <<PK>>
+  user_id : VARCHAR(64)
+  order_no : VARCHAR(64)
+  amount : BIGINT
+  status : VARCHAR(20)
+  idempotency_key : VARCHAR(128)
+  used_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+entity point_usage_detail {
+  * id : BIGINT <<PK>>
+  usage_id : BIGINT <<FK>>
+  accrual_id : BIGINT <<FK>>
+  amount : BIGINT
+}
+entity api_log { * id : BIGINT <<PK>> }
+entity idempotency_registry { * idem_key : VARCHAR(128) <<PK>> }
+
+point_wallet ||--o{ point_accrual : has
+point_usage ||--o{ point_usage_detail : alloc
+point_accrual ||--o{ point_usage_detail : source
+@enduml

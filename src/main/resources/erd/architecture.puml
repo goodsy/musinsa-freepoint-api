@@ -1,0 +1,19 @@
+
+    @startuml
+    !theme plain
+    rectangle "Adapters" {
+      [REST Controller]
+[Persistence (JPA)]
+    }
+    rectangle "Application" {
+      [UseCases]
+[Ports]
+    }
+    rectangle "Domain" {
+      [Entities/Rules]
+[Services]
+    }
+    [REST Controller] --> [UseCases]
+    [UseCases] --> [Ports]
+    [Ports] --> [Persistence (JPA)]
+    @enduml
