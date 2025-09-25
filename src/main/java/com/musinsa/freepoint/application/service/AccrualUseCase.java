@@ -29,20 +29,20 @@ public class AccrualUseCase {
     @Transactional
     public PointAccrual accrue(AccrualCommand cmd) {
 
-        validateAccrualAmount(cmd.amount(), policy);
+        validateAccrualAmount(cmd.request().amount(), policy);
 
-        int expiry = resolveExpiryDays(cmd.expiryDays(), policy);
+        int expiry = resolveExpiryDays(cmd.request().expiryDays(), policy);
         validateExpiryDays(expiry, policy);
 
-        PointWallet wallet = walletRepo.findById(cmd.userId()).orElse(new PointWallet(cmd.userId()));
-        validateWalletBalance(wallet.getTotalBalance(), cmd.amount(), policy);
+        PointWallet wallet = walletRepo.findById(cmd.request().userId()).orElse(new PointWallet(cmd.request().userId()));
+        validateWalletBalance(wallet.getTotalBalance(), cmd.request().amount(), policy);
 
         LocalDateTime expiresAt = LocalDateTime.now().plus(expiry, ChronoUnit.DAYS);
-        PointAccrual a = PointAccrual.create(cmd.userId(), cmd.amount(), cmd.manual(), cmd.sourceType(), cmd.sourceId(), expiresAt);
+        PointAccrual a = PointAccrual.create(cmd.request().userId(), cmd.request().amount(), cmd.request().manual(), cmd.request().sourceType(), cmd.request().sourceId(), expiresAt);
 
         accrualRepo.save(a);
 
-        wallet.increase(cmd.amount(), cmd.manual());
+        wallet.increase(cmd.request().amount(), cmd.request().manual());
         walletRepo.save(wallet);
         return a;
     }
@@ -52,8 +52,8 @@ public class AccrualUseCase {
             throw new IllegalArgumentException("1회 적립 한도 위반.[최소 금액="+policy.getMaxAccrualPerTxn()+"]");
     }
 
-    private int resolveExpiryDays(Integer expiryDays, PolicyConfig policy) {
-        return expiryDays != null ? expiryDays : policy.getDefaultExpiryDays();
+    private int resolveExpiryDays(int expiryDays, PolicyConfig policy) {
+        return expiryDays < 0 ? expiryDays : policy.getDefaultExpiryDays();
     }
 
     private void validateExpiryDays(int expiry, PolicyConfig policy) {

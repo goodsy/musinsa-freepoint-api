@@ -38,7 +38,7 @@ updated_at
  */
 
 CREATE TABLE IF NOT EXISTS point_accrual (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '적립 고유 ID',
+    point_key VARCHAR(100) PRIMARY KEY COMMENT '포인트 Key(문자열, PK)',
     user_id VARCHAR(64) NOT NULL COMMENT '사용자 식별자',
     amount BIGINT NOT NULL COMMENT '적립 금액',
     remain_amount BIGINT NOT NULL COMMENT '현재 남아있는 사용 가능 금액',
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS point_accrual (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '수정 시각',
     version INT NOT NULL DEFAULT 0 COMMENT '낙관적 락 버전'
     ) COMMENT='포인트 적립 원장: 사용자별 포인트 적립 이벤트 상세 내역 관리';
-
+/*
 -- CREATE INDEX IF NOT EXISTS idx_accrual_user_remain ON point_accrual(user_id, remain_amount); CREATE INDEX IF NOT EXISTS idx_accrual_user_expire ON point_accrual(user_id, manual DESC, expires_at ASC, id ASC);
 
 -- 사용 배분 시 user_id, status, remain_amount로 후보를 빠르게 찾고
@@ -62,31 +62,28 @@ CREATE TABLE IF NOT EXISTS point_accrual (
 --   WHERE user_id = ? AND status='ACTIVE' AND remaining > 0
 --   ORDER BY manual DESC, expires_at ASC, id ASC
 --   ※ 정렬 컬럼을 인덱스 뒤쪽에 동일 순서로 배치
-CREATE INDEX IF NOT EXISTS idx_accrual_use_pick
-    ON point_accrual(user_id, status, remain_amount, manual DESC, expires_at ASC, id ASC);
+CREATE INDEX IF NOT EXISTS idx_accrual_use_pick ON point_accrual(user_id, status, remain_amount, manual DESC, expires_at ASC, id ASC);
 
 -- 만료 배치 처리 최적화
 -- 2) 만료 배치/리포트
 --   WHERE status='ACTIVE' AND expires_at <= ?
 --   (status → expires_at 순으로 범위 조건 활용)
-CREATE INDEX IF NOT EXISTS idx_accrual_expire
-    ON point_accrual(status, expires_at);
+CREATE INDEX IF NOT EXISTS idx_accrual_expire ON point_accrual(status, expires_at);
 
 -- 원천 추적/중복 방지
 -- 3) 원천 추적/중복 방지(검색)
 --   WHERE user_id=? AND source_type=? AND source_id=?
 --   *source_id가 NULL 가능하면 유니크 제약은 선택(업무 규칙에 따라)
-CREATE INDEX IF NOT EXISTS idx_accrual_source_lookup
-    ON point_accrual(user_id, source_type, source_id);
+CREATE INDEX IF NOT EXISTS idx_accrual_source_lookup ON point_accrual(user_id, source_type, source_id);
 
 -- 멱등성 보장
 -- 4) idempotency 재플레이 방지/조회
-CREATE UNIQUE INDEX IF NOT EXISTS uq_accrual_idem
-    ON point_accrual(idempotency_key);
+-- CREATE UNIQUE INDEX IF NOT EXISTS uq_accrual_idem ON point_accrual(idempotency_key);
 
 -- 5) 기본 PK 조회는 PK로 충분. 이전의 단순 인덱스는 제거 고려
 --   기존 idx_accrual_user_remain, idx_accrual_user_expire는 아래 인덱스로 대체 가능.
 --   (충돌/중복 인덱스는 drop하여 쓰기 성능/공간 최적화 권장)
+*/
 
 
 

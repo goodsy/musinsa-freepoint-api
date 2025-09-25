@@ -3,10 +3,10 @@ spring:
   datasource:
     url: jdbc:h2:mem:freepoint;MODE=MySQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1
     username: sa
-    password: ""
+    password:
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
@@ -14,8 +14,9 @@ spring:
   h2:
     console:
       enabled: true
-  flyway:
-    enabled: true
+      path: /h2-console
+  #flyway:
+  #  enabled: false
 
 point:
   policy:
@@ -25,5 +26,17 @@ point:
     min-expiry-days: 1
     max-expiry-days: 1824
 
+security:
+  jwt:
+    secret: "musinsa-secret-for-local-dev-change-me"
+    issuer: "musinsa-free-point-api"
+
 server:
   port: 8080
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui/index.html

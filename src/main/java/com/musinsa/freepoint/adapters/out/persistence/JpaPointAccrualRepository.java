@@ -11,8 +11,8 @@ import java.util.List;
 public interface JpaPointAccrualRepository extends JpaRepository<PointAccrual, Long> {
     @Query("""
         SELECT a FROM PointAccrual a
-        WHERE a.userId = :userId AND a.status = 'ACTIVE' AND a.remaining > 0
-        ORDER BY a.manual DESC, a.expiresAt ASC, a.id ASC
+        WHERE a.userId = :userId AND a.status = 'ACTIVE' AND a.remainAmount > 0
+        ORDER BY a.manual DESC, a.expireAt ASC, a.pointKey ASC
     """)
     List<PointAccrual> findAvailable(@Param("userId") String userId);
 }

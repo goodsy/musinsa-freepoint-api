@@ -39,7 +39,7 @@ public class UsePointUseCase {
             long take = Math.min(a.getRemainAmount(), remain);
             a.allocate(take);
             accrualRepo.save(a);
-            u.addDetail(a.getId(), take);
+            u.addDetail(a.getPointKey(), take);
             remain -= take;
         }
         if (remain > 0) throw new IllegalArgumentException("잔액 부족");
