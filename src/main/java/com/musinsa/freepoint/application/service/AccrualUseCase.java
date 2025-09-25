@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 @Service
@@ -20,27 +21,72 @@ public class AccrualUseCase {
     private final PolicyConfig policy;
 
     public AccrualUseCase(JpaPointAccrualRepository accrualRepo, JpaPointWalletRepository walletRepo, PolicyConfig policy) {
-        this.accrualRepo = accrualRepo; this.walletRepo = walletRepo; this.policy = policy;
+        this.accrualRepo = accrualRepo;
+        this.walletRepo = walletRepo;
+        this.policy = policy;
     }
 
     @Transactional
     public PointAccrual accrue(AccrualCommand cmd) {
-        if (cmd.amount() < 1 || cmd.amount() > policy.getMaxAccrualPerTxn())
-            throw new IllegalArgumentException("1회 적립 한도 위반");
 
-        int expiry = cmd.expiryDays() != null ? cmd.expiryDays() : policy.getDefaultExpiryDays();
-        if (expiry < policy.getMinExpiryDays() || expiry > policy.getMaxExpiryDays())
-            throw new IllegalArgumentException("만료일 범위 위반");
+        validateAccrualAmount(cmd.amount(), policy);
+
+        int expiry = resolveExpiryDays(cmd.expiryDays(), policy);
+        validateExpiryDays(expiry, policy);
 
         PointWallet wallet = walletRepo.findById(cmd.userId()).orElse(new PointWallet(cmd.userId()));
-        if (wallet.getTotalBalance() + cmd.amount() > policy.getMaxWalletBalance())
-            throw new IllegalArgumentException("보유 한도 초과");
+        validateWalletBalance(wallet.getTotalBalance(), cmd.amount(), policy);
 
-        Instant expiresAt = Instant.now().plus(expiry, ChronoUnit.DAYS);
+        LocalDateTime expiresAt = LocalDateTime.now().plus(expiry, ChronoUnit.DAYS);
         PointAccrual a = PointAccrual.create(cmd.userId(), cmd.amount(), cmd.manual(), cmd.sourceType(), cmd.sourceId(), expiresAt);
+
         accrualRepo.save(a);
+
         wallet.increase(cmd.amount(), cmd.manual());
         walletRepo.save(wallet);
         return a;
     }
+
+    private void validateAccrualAmount(long amount, PolicyConfig policy) {
+        if (amount < 1 || amount > policy.getMaxAccrualPerTxn())
+            throw new IllegalArgumentException("1회 적립 한도 위반.[최소 금액="+policy.getMaxAccrualPerTxn()+"]");
+    }
+
+    private int resolveExpiryDays(Integer expiryDays, PolicyConfig policy) {
+        return expiryDays != null ? expiryDays : policy.getDefaultExpiryDays();
+    }
+
+    private void validateExpiryDays(int expiry, PolicyConfig policy) {
+        if (expiry < policy.getMinExpiryDays() || expiry > policy.getMaxExpiryDays())
+            throw new IllegalArgumentException("만료일 범위 위반[" + policy.getMinExpiryDays() + "~" + policy.getMaxExpiryDays() + "]");
+    }
+
+    private void validateWalletBalance(long currentBalance, long accrual, PolicyConfig policy) {
+        if (currentBalance + accrual > policy.getMaxWalletBalance())
+            throw new IllegalArgumentException("보유 한도 초과[최대 가능 금액="+policy.getMaxWalletBalance()+"]");
+    }
+
+
+/*    public static void validateOneTimeAccrualLimit(long amount, AccrualPolicy policy){
+        if (amount < policy.minPerOnce())
+            throw new IllegalArgumentException("최소 적립 가능한 금액이 아닙니다.[최소 금액="+policy.minPerOnce()+"]");
+        if (amount > policy.maxPerOnce())
+            throw new IllegalArgumentException("적립가능한 최대 포인트 금액을 초과하였습니다.[최대 금액="+policy.maxPerOnce()+"]");
+    }
+
+    private static void validateExpirationDays(Integer expireDays, AccrualPolicy policy) {
+
+        int days = (expireDays != null) ? expireDays : policy.defaultExpireDays();
+        if (days < policy.minExpireDays() || days > policy.maxExpireDays())
+            throw new IllegalArgumentException("부여가능한 만료일이 아닙니다. [" + policy.minExpireDays() + "~" + policy.maxExpireDays() + "]");
+
+    }
+
+    private void validateMaxHoldingLimit(long amount, String userId, AccrualPolicy policy) {
+        LocalDateTime now = LocalDateTime.now();
+        long remainAmount = accrualFingerPort.findRemainAmount(userId, now).value();
+        if (remainAmount + amount > policy.maxBalancePerUser())
+            throw new IllegalArgumentException("개인별 최대 보유가능한 포인트 금액을 초과하였습니다.[최대 가능 금액="+policy.maxBalancePerUser()+"]");
+
+    }*/
 }

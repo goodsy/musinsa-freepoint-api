@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -31,7 +32,7 @@ public class UseCancelUseCase {
         if (toCancel <= 0) throw new IllegalArgumentException("cancel amount must be positive");
 
         List<PointUsageDetail> details = detailRepo.findByUsageIdOrderByIdDesc(u.getId());
-        Instant now = Instant.now();
+        LocalDateTime now = LocalDateTime.now();
 
         for (PointUsageDetail d : details) {
             if (toCancel == 0) break;
@@ -39,7 +40,8 @@ public class UseCancelUseCase {
             PointAccrual src = accrualRepo.findById(d.getAccrualId()).orElseThrow();
             if (src.isExpired(now)) {
                 // reissue as REVERSAL: simply create new accrual with default 365d
-                PointAccrual rev = PointAccrual.create(u.getUserId(), giveBack, false, "REVERSAL", "USAGE_CANCEL", now.plusSeconds(365*86400L));
+                long seconds = 365L*86400L;
+                PointAccrual rev = PointAccrual.create(u.getUserId(), giveBack, false, "REVERSAL", "USAGE_CANCEL", now.plusSeconds(seconds));
                 accrualRepo.save(rev);
             } else {
                 src.restore(giveBack);

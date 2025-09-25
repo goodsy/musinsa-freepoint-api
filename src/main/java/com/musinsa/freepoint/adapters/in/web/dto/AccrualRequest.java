@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 public record AccrualRequest(
         @NotBlank String userId,
         @Min(1) long amount,
-        Integer expiryDays,
+        long expiryDays,
         Boolean manual,
         String sourceType,
         String sourceId

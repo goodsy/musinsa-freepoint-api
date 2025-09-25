@@ -109,27 +109,29 @@ CREATE TABLE IF NOT EXISTS point_usage_detail (
   amount BIGINT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS api_log (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  request_id VARCHAR(64),
-  method VARCHAR(10),
-  path VARCHAR(128),
-  user_id VARCHAR(64),
-  order_no VARCHAR(64),
-  idempotency_key VARCHAR(128),
-  status INT,
-  took_ms INT,
-  req_body CLOB,
-  res_body CLOB,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
-CREATE TABLE IF NOT EXISTS idempotency_registry (
-  idem_key VARCHAR(128) PRIMARY KEY,
-  request_hash VARCHAR(64) NOT NULL,
-  method VARCHAR(10) NOT NULL,
-  path VARCHAR(128) NOT NULL,
-  response_body CLOB,
-  status INT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+
+CREATE TABLE IF NOT EXISTS api_log (
+   log_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '로그 PK 자동 증가)',
+   request_id VARCHAR(64) COMMENT '요청 고유 식별자 (트래킹용 UUID 등)',
+   api_id VARCHAR(10) NOT NULL COMMENT 'api연동을 위한 id',
+   api_method VARCHAR(10) NOT NULL COMMENT 'API HTTP 메서드 (예: GET, POST 등)',
+   api_url VARCHAR(128) NOT NULL COMMENT 'API 엔드포인트 URL (예: /order/create)',
+   idempotency_key VARCHAR(200) COMMENT '멱등성 키 (중복 요청 방지용)',
+   order_no VARCHAR(64) COMMENT '주문 번호 (해당 API가 주문 관련일 경우)',
+   request_hash VARCHAR(64) NOT NULL COMMENT '요청 본문 해시값 (요청 유일성 검증용)',
+   status_code VARCHAR(5) NOT NULL COMMENT '처리 상태 코드 (예: 200, 400, 409 등)',
+   req_headers CLOB NOT NULL COMMENT '요청 헤더 전체 (JSON 등 문자열로 저장)',
+   req_body CLOB NOT NULL COMMENT '요청 본문 (JSON 등)',
+   res_body CLOB NOT NULL COMMENT '응답 본문 (JSON 등)',
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '생성 일시 (로그 기록 시각)'
+) COMMENT='API 요청(멱등성 키 포함) 테이블 : 중복 요청 방지 및 재처리 차단 목적';
+
+
+
+
+CREATE TABLE idempotency_keys (
+   idempotency_key VARCHAR(255) PRIMARY KEY COMMENT '멱등성 키 (Idempotency-Key 헤더 값, 중복 요청 방지용 고유 식별자)',
+   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '키 등록 시각 (최초 요청 처리 시각)'
+) COMMENT='API 멱등성 보장용 키 관리 테이블 : 중복 요청 방지 및 재처리 차단 목적';
+

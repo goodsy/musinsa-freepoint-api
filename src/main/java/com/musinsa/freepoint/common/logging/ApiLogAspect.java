@@ -14,27 +14,30 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 @Aspect
 @Component
 public class ApiLogAspect {
-    private final ApiLogRepository repo;
+    private final ApiLogRepository repository;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public ApiLogAspect(ApiLogRepository repo) { this.repo = repo; }
+    public ApiLogAspect(ApiLogRepository repository) {
+        this.repository = repository;
+    }
 
     @Around("within(@org.springframework.web.bind.annotation.RestController *)")
     public Object log(ProceedingJoinPoint pjp) throws Throwable {
         long start = System.currentTimeMillis();
         ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest req = attr != null ? attr.getRequest() : null;
+
         var response = attr != null ? attr.getResponse() : null;
         ContentCachingResponseWrapper wrap = response instanceof ContentCachingResponseWrapper ?
                 (ContentCachingResponseWrapper) response : new ContentCachingResponseWrapper(response);
 
         Object result = pjp.proceed();
 
-        int took = (int)(System.currentTimeMillis() - start);
+        int took = (int) (System.currentTimeMillis() - start);
         int status = wrap.getStatus();
         String reqBody = ""; // can be enhanced
         String resBody = new String(wrap.getContentAsByteArray());
-        repo.save(ApiLog.of(null, req != null ? req.getMethod() : "NA",
+        repository.save(ApiLog_b.of(null, req != null ? req.getMethod() : "NA",
                 req != null ? req.getRequestURI() : "NA", null, status, took, reqBody, resBody));
         wrap.copyBodyToResponse();
         return result;

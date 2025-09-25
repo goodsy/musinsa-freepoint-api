@@ -9,12 +9,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.Base64;
 
 @Component
 public class IdempotencyFilter extends OncePerRequestFilter {
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+    }
+
+    /*
     private final IdempotencyRepository repo;
 
     public IdempotencyFilter(IdempotencyRepository repo) { this.repo = repo; }
@@ -62,4 +65,6 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             return "";
         }
     }
+
+     */
 }
