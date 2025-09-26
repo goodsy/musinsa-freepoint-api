@@ -1,6 +1,7 @@
 
 package com.musinsa.freepoint.domain.accrual;
 import com.musinsa.freepoint.adapters.in.web.dto.AccrualRequest;
+import com.musinsa.freepoint.common.PointKeyGenerator;
 import com.musinsa.freepoint.domain.model.Enums.*;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,8 +19,9 @@ import static java.util.Objects.requireNonNull;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class PointAccrual {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id
+    @Column(length = 100)
+    private String pointKey;
 
     @Column(nullable = false)
     private String userId;
@@ -59,6 +61,7 @@ public class PointAccrual {
 
     public static PointAccrual create(String userId, long amount, boolean manual, String sourceType, String sourceId, LocalDateTime expiresAt) {
         return PointAccrual.builder()
+                .pointKey(PointKeyGenerator.generatePointKey(userId))
                 .userId(userId)
                 .amount(amount)
                 .remainAmount(amount)
@@ -79,6 +82,7 @@ public class PointAccrual {
 
         PointAccrual accrual = new PointAccrual();
 
+        accrual.pointKey = PointKeyGenerator.generatePointKey(request.userId());
         accrual.userId = request.userId();
         accrual.amount = request.amount();
         accrual.remainAmount = request.amount();

@@ -29,7 +29,7 @@ public class PointUsage {
         return u;
     }
 
-    public void addDetail(Long accrualId, long amount) {
+    public void addDetail(String accrualId, long amount) {
         details.add(PointUsageDetail.of(this.id, accrualId, amount));
     }
 

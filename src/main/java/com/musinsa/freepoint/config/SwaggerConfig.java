@@ -15,10 +15,15 @@ public class SwaggerConfig {
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info().title("Musinsa FreePoint API").version("v1"))
+                .components(new Components().addSecuritySchemes("bearer",
+                        new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")))
+                .addSecurityItem(new SecurityRequirement().addList("bearer"));
+     /*   return new OpenAPI()
+                .info(new Info().title("Musinsa FreePoint API").version("v1"))
                 .components(new Components()
                         .addSecuritySchemes("bearer",
                                 new SecurityScheme().type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer").bearerFormat("JWT")))
-                .addSecurityItem(new SecurityRequirement().addList("bearer"));
+                .addSecurityItem(new SecurityRequirement().addList("bearer"));*/
     }
 }
