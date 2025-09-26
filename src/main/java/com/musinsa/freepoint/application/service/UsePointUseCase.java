@@ -36,7 +36,7 @@ public class UsePointUseCase {
 
         for (PointAccrual a : new ArrayList<>(avail)) {
             if (remain == 0) break;
-            long take = Math.min(a.getRemaining(), remain);
+            long take = Math.min(a.getRemainAmount(), remain);
             a.allocate(take);
             accrualRepo.save(a);
             u.addDetail(a.getId(), take);
